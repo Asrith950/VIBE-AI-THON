@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Battleground - Multiplayer Combat Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Game HUD (Heads-Up Display) -->
+    <div id="hud">
+        
+        <!-- Scope Overlay -->
+        <div id="scope-overlay" style="display: none;">
+            <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+                <!-- Scope circle -->
+                <circle cx="50%" cy="50%" r="150" fill="none" stroke="#0f0" stroke-width="2" opacity="0.8"/>
+                <circle cx="50%" cy="50%" r="148" fill="none" stroke="#000" stroke-width="1" opacity="0.5"/>
+                
+                <!-- Crosshair lines -->
+                <line x1="50%" y1="calc(50% - 200px)" x2="50%" y2="calc(50% - 160px)" stroke="#0f0" stroke-width="2"/>
+                <line x1="50%" y1="calc(50% + 200px)" x2="50%" y2="calc(50% + 160px)" stroke="#0f0" stroke-width="2"/>
+                <line x1="calc(50% - 200px)" y1="50%" x2="calc(50% - 160px)" y2="50%" stroke="#0f0" stroke-width="2"/>
+                <line x1="calc(50% + 200px)" y1="50%" x2="calc(50% + 160px)" y2="50%" stroke="#0f0" stroke-width="2"/>
+                
+                <!-- Center dot -->
+                <circle cx="50%" cy="50%" r="2" fill="#0f0"/>
+                
+                <!-- Range markings -->
+                <line x1="calc(50% + 100px)" y1="calc(50% - 5px)" x2="calc(50% + 100px)" y2="calc(50% + 5px)" stroke="#0f0" stroke-width="1"/>
+                <line x1="calc(50% - 100px)" y1="calc(50% - 5px)" x2="calc(50% - 100px)" y2="calc(50% + 5px)" stroke="#0f0" stroke-width="1"/>
+            </svg>
+            
+            <!-- Dark vignette around scope -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                        background: radial-gradient(circle at center, transparent 150px, rgba(0,0,0,0.95) 250px);
+                        pointer-events: none;"></div>
+        </div>
+        
+        <!-- Crosshair -->
+        <div id="crosshair">
+            <div class="crosshair-line crosshair-v"></div>
+            <div class="crosshair-line crosshair-h"></div>
+        </div>        <!-- Player Stats -->
+        <div id="player-stats">
+            <div id="health-container">
+                <label>Health:</label>
+                <div id="health-bar-bg">
+                    <div id="health-bar"></div>
+                </div>
+                <span id="health-text">100/100</span>
+            </div>
+            <div id="stance-indicator">
+                <label>Stance:</label>
+                <span id="stance-text">STANDING</span>
+            </div>
+            <div id="weapon-indicator">
+                <label>Weapon:</label>
+                <span id="weapon-text">Assault Rifle</span>
+            </div>
+            <div id="ammo-counter">Ammo: ∞</div>
+        </div>
+
+        <!-- Minimap -->
+        <div id="minimap">
+            <canvas id="minimap-canvas" width="150" height="150"></canvas>
+        </div>
+
+        <!-- Scoreboard -->
+        <div id="scoreboard">
+            <h3>Players</h3>
+            <div id="player-list"></div>
+        </div>
+
+        <!-- Controls Info -->
+        <div id="controls-info">
+            <h3>Controls</h3>
+            <p><strong>WASD</strong> - Move</p>
+            <p><strong>Mouse</strong> - Look Around</p>
+            <p><strong>Left Click</strong> - Shoot</p>
+            <p><strong>Q / 1 / 2</strong> - Switch Weapon</p>
+            <p><strong>Space</strong> - Jump</p>
+            <p><strong>Shift</strong> - Run</p>
+            <p><strong>C</strong> - Crouch</p>
+            <p><strong>X</strong> - Prone</p>
+            <p><strong>ESC</strong> - Unlock Mouse</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <h1>3D BATTLEGROUND</h1>
+            <p>Click to Start</p>
+            <div id="tip">Use WASD to move, Mouse to aim, Click to shoot!</div>
+        </div>
+        
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <div id="login-container">
+                <h1>🎮 3D BATTLEGROUND</h1>
+                <h2>Enter the Arena</h2>
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="player-name">Player Name</label>
+                        <input 
+                            type="text" 
+                            id="player-name" 
+                            placeholder="Enter your name" 
+                            maxlength="15"
+                            required
+                            autocomplete="off"
+                        />
+                    </div>
+                    <button type="submit" id="login-btn">JOIN GAME</button>
+                </form>
+                <div id="game-info">
+                    <p>🎯 Free-for-all multiplayer combat</p>
+                    <p>⚔️ Battle against AI enemies and real players</p>
+                    <p>🏆 Compete for the top spot on the leaderboard</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Selection Screen -->
+        <div id="team-selection-screen" style="display: none;">
+            <div id="team-selection-container">
+                <h1>⚔️ SELECT TEAM MODE</h1>
+                <h2>Choose Your Squad Size</h2>
+                
+                <div class="team-mode-grid">
+                    <!-- Solo Mode -->
+                    <div class="team-mode-card" data-mode="solo">
+                        <div class="mode-icon">👤</div>
+                        <h3>SOLO</h3>
+                        <p class="mode-description">Fight alone against all</p>
+                        <div class="mode-details">
+                            <span class="player-count">1 Player</span>
+                            <span class="difficulty">⚡ High Risk</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Duo Mode -->
+                    <div class="team-mode-card" data-mode="duo">
+                        <div class="mode-icon">👥</div>
+                        <h3>DUO</h3>
+                        <p class="mode-description">You + 1 AI Teammate</p>
+                        <div class="mode-details">
+                            <span class="player-count">2 Players</span>
+                            <span class="difficulty">⚖️ Balanced</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Squad Mode -->
+                    <div class="team-mode-card" data-mode="squad">
+                        <div class="mode-icon">👨‍👩‍👦‍👦</div>
+                        <h3>SQUAD</h3>
+                        <p class="mode-description">You + 3 AI Teammates</p>
+                        <div class="mode-details">
+                            <span class="player-count">4 Players</span>
+                            <span class="difficulty">🛡️ Tactical</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-selection-info">
+                    <p>💡 AI teammates will follow and protect you</p>
+                    <p>🎯 Coordinate attacks for better results</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over" style="display: none;">
+            <h1 id="game-result-text">DEFEAT</h1>
+            <p id="final-score"></p>
+            <button id="restart-btn">Restart Game</button>
+        </div>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/bullet.js"></script>
+    <script src="js/minimap.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
